@@ -1,5 +1,14 @@
 from types import FunctionType
 
+def setup(session, *tables):
+    for table in tables:
+        Model = table.model
+        for row in table.rows:
+            item = Model(**dict(row))
+            session.add(item)
+            session.commit()
+            row.id = item.id
+
 class Table(object):
     def __init__(self):
         self.rows = []

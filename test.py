@@ -24,6 +24,7 @@ Base.metadata.create_all(bind=engine)
 
 class RoleData(fixit.Table):
     columns = ["name", "short_name", "default_boss_role_id", "is_team_default"]
+    model = Role
 
 roles = RoleData()
 roles.row("nfd").set(name            = "National Field Director",
@@ -43,11 +44,7 @@ roles.row("sd").set(name                 = "State Director",
                     default_boss_role_id = roles.nrd.id
                     )
 
-for role in roles.rows:
-    r = Role(**dict(role))
-    db_session.add(r)
-    db_session.commit()
-    role.id = r.id
+fixit.setup(db_session, roles)
 
 for role in db_session.query(Role).all():
     print "******"
