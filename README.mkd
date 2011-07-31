@@ -1,0 +1,3 @@
+# FIXIT
+
+Fixit is a quick and dirty fixtures library for SQLAlchemy. The primary goal is to support self referential keys as well as foreign key references, in a relatively simple and sucinct fashion. Take a look at examples/roles.py for an example of how to put together a set of fixtures.
