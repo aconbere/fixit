@@ -34,8 +34,11 @@ class Row(object):
         self.values.update(values)
         return self
 
-    def f(self, row):
-        self.values.update(row.values)
+    def f(self, data):
+        if isinstance(data, Table):
+            self.values.update(row.values)
+        else:
+            self.values.update(data)
         return self
 
     @property
