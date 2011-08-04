@@ -8,6 +8,8 @@ def setup(session, *tables):
             session.add(item)
             session.commit()
             row.id = item.id
+            row._item = item
+        table.after_setup()
 
 class Table(object):
     def __init__(self):
@@ -18,6 +20,9 @@ class Table(object):
         self.rows.append(row)
         setattr(self, name, row)
         return row
+
+    def after_setup(self):
+        pass
 
     def __iter__(self):
         for r in self.rows:
