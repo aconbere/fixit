@@ -46,9 +46,6 @@ class Row(object):
     def to_dict(self):
         return dict([(k, self.get_value(k)()) for k in self.columns])
 
-def table_from(model):
-    return Table(model)
-
 def setup(session, *tables):
     for table in tables:
         for row in table.rows:
