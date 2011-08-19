@@ -31,14 +31,14 @@ roles.row("nfd").set(name            = "National Field Director",
 roles.row("nrd").set(name                 = "National Regional Director",
                      short_name           = "nrd",
                      is_team_default      = True,
-                     default_boss_role_id = roles.nfd.get_value("id")
+                     default_boss_role_id = roles.nfd.get("id")
                      )
 
 
 roles.row("sd").set(name                 = "State Director",
                     short_name           = "sd",
                     is_team_default      = True,
-                    default_boss_role_id = roles.nrd.get_value("id")
+                    default_boss_role_id = roles.nrd.get("id")
                     )
 
 # This is a couple of the shortcuts available by design

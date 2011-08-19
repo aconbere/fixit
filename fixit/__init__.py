@@ -36,7 +36,7 @@ class Row(object):
             self.values.update(data)
         return self
 
-    def get_value(self, key):
+    def get(self, key):
         val = self.values.get(key)
         if isinstance(val, FunctionType):
             return val
