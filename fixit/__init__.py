@@ -22,7 +22,7 @@ class Table(object):
         """
         pass
 
-    def after_rows_inserted(self, session):
+    def after_create(self, session):
         """
         Called after all rows have been inserted
         """
@@ -33,6 +33,7 @@ class Row(object):
         self.columns = list(columns)
         self.columns.remove("id")
         self.values = {}
+        self._item = None
 
     def __repr__(self):
         return str(self.values)
@@ -56,7 +57,7 @@ class Row(object):
             return lambda: self.values.get(key)
 
     def to_dict(self):
-        return dict([(k, self.get_value(k)()) for k in self.columns])
+        return dict([(k, self.get(k)()) for k in self.values.keys()])
 
 def setup(session, *tables):
     for table in tables:
@@ -66,6 +67,7 @@ def setup(session, *tables):
                 session.add(item)
                 session.flush()
                 row.values["id"] = item.id
+                row._item = item
                 table.after_insert(item, session)
 
 #                for column in table.columns + ["id"]:
@@ -74,5 +76,5 @@ def setup(session, *tables):
 #                        row.values[column] = value
             except AttributeError, why:
                 raise AttributeError("You have a misconfigured row\n%s\n%s" % (row, why))
-        table.after_rows_inserted(session)
+        table.after_create(session)
     session.commit()
