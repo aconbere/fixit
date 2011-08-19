@@ -1,17 +1,14 @@
 from types import FunctionType
 
-def setup(session, *tables):
-    for table in tables:
-        Model = table.model
-        for row in table.rows:
-            item = Model(**dict(row))
-            session.add(item)
-            session.commit()
-            row.id = item.id
-
 class Table(object):
-    def __init__(self):
+    """
+    An abstract representation of a sqlalchemy table
+    """
+
+    def __init__(self, model):
         self.rows = []
+        self.model = model
+        self.columns = self.model.__table__.columns.keys()
 
     def row(self, name):
         row = Row(self.columns)
@@ -19,41 +16,53 @@ class Table(object):
         setattr(self, name, row)
         return row
 
-    def __iter__(self):
-        for r in self.rows:
-            yield dict(r)
-
 class Row(object):
     def __init__(self, columns):
-        self.columns = columns
+        self.columns = list(columns)
+        self.columns.remove("id")
         self.values = {}
 
-    def set(self, *args, **kwargs):
-        values = dict(zip(self.columns, args))
-        values.update(kwargs)
-        self.values.update(values)
+    def __repr__(self):
+        return str(self.values)
+
+    def set(self, **kwargs):
+        self.values.update(kwargs)
         return self
 
     def f(self, data):
-        if isinstance(data, Table):
-            self.values.update(row.values)
+        if isinstance(data, Row):
+            self.values.update(data.values)
         else:
             self.values.update(data)
         return self
 
-    @property
-    def id(self):
-        def lazy():
-            return self.values.get('id')
-        return lazy
+    def get_value(self, key):
+        val = self.values.get(key)
+        if isinstance(val, FunctionType):
+            return val
+        else:
+            return lambda: self.values.get(key)
 
-    @id.setter
-    def id(self, id):
-        self.values['id'] = id
+    def to_dict(self):
+        return dict([(k, self.get_value(k)()) for k in self.columns])
 
-    def __iter__(self):
-        for k,v in self.values.iteritems():
-            if isinstance(v, FunctionType):
-                yield k, v()
-            else:
-                yield k, v
+def table_from(model):
+    return Table(model)
+
+def setup(session, *tables):
+    for table in tables:
+        for row in table.rows:
+            try:
+                item = table.model(**row.to_dict())
+                session.add(item)
+                session.flush()
+                row.values["id"] = item.id
+
+#                for column in table.columns + ["id"]:
+#                    value = getattr(item, column)
+#                    if value:
+#                        row.values[column] = value
+            except AttributeError, why:
+                raise AttributeError("You have a misconfigured row\n%s\n%s" % (row, why))
+    session.commit()
+

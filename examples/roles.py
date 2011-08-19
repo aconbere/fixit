@@ -22,26 +22,23 @@ class Role(Base):
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
-class RoleData(fixit.Table):
-    columns = ["name", "short_name", "default_boss_role_id", "is_team_default"]
-    model = Role
-
-roles = RoleData()
+roles = fixit.Table(Role)
 roles.row("nfd").set(name            = "National Field Director",
                      short_name      = "nfd",
-                     is_team_default = True
+                     is_team_default = True,
                      )
 
 roles.row("nrd").set(name                 = "National Regional Director",
                      short_name           = "nrd",
                      is_team_default      = True,
-                     default_boss_role_id = roles.nfd.id
+                     default_boss_role_id = roles.nfd.get_value("id")
                      )
+
 
 roles.row("sd").set(name                 = "State Director",
                     short_name           = "sd",
                     is_team_default      = True,
-                    default_boss_role_id = roles.nrd.id
+                    default_boss_role_id = roles.nrd.get_value("id")
                     )
 
 # This is a couple of the shortcuts available by design
@@ -51,11 +48,11 @@ roles.row("sd").set(name                 = "State Director",
 # .set looks at *args as well as **kwargs and zips args with the column names
 # So if you know what order the columns are in, you can just hand args to it
 # that way. In this case this sets the Name of "fd" to Field Director
-roles.row("fd").f(roles.sd).set("Field Director")
+roles.row("fd").f(roles.sd).set(name = "Field Director")
 
 fixit.setup(db_session, roles)
 
-for role in db_session.query(Role).all():
+for role in db_session.query(Role).order_by("id").all():
     print "******"
     print role.name
     print role.short_name
