@@ -16,6 +16,18 @@ class Table(object):
         setattr(self, name, row)
         return row
 
+    def after_insert(self, item, session):
+        """
+        Called after a row has been inserted
+        """
+        pass
+
+    def after_rows_inserted(self, session):
+        """
+        Called after all rows have been inserted
+        """
+        pass
+
 class Row(object):
     def __init__(self, columns):
         self.columns = list(columns)
@@ -54,6 +66,7 @@ def setup(session, *tables):
                 session.add(item)
                 session.flush()
                 row.values["id"] = item.id
+                table.after_insert(item, session)
 
 #                for column in table.columns + ["id"]:
 #                    value = getattr(item, column)
@@ -61,5 +74,5 @@ def setup(session, *tables):
 #                        row.values[column] = value
             except AttributeError, why:
                 raise AttributeError("You have a misconfigured row\n%s\n%s" % (row, why))
+        table.after_rows_inserted(session)
     session.commit()
-
